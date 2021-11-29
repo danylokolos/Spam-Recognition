@@ -19,15 +19,14 @@ df = pd.read_csv(infile)
 
 
 #%% Data Wrangling
-# identify feature and target
-feature_names = ['MESSAGE']
-target_names = ['CATEGORY']
-
-
-#%% Preprocessing
 # drop columns with useless info
 df = df.drop(['FILE_NAME'],axis=1)
 df.columns
+
+
+
+
+#%% Preprocessing
 # Category --> 0 = NOT SPAM, 1 = SPAM
 
 # encode categorical target
@@ -47,34 +46,15 @@ lenc_filename= "lenc_target.pkl"
 with open(lenc_filename, 'wb') as outfile:
     pickle.dump(lenc,outfile)
 
-
-
-
-#%% tf-idf
-#102542 unique words to 8694 unique words with max_df and min_df
-from sklearn.feature_extraction.text import TfidfVectorizer
-strip_accents = 'ascii'
-lowercase = True
-max_df = 0.4
-min_df = 10
-vectorizer = TfidfVectorizer(strip_accents=strip_accents,
-                             lowercase=lowercase,
-                             max_df=max_df,
-                             min_df=min_df)
-X = vectorizer.fit_transform(df['MESSAGE'])
-
-#consider adding NLTK to add stemming functionality
-
-# save tfidf vectorizer
-vectorizer_filename= "vectorizer.pkl"
-with open(vectorizer_filename, 'wb') as outfile:
-    pickle.dump(vectorizer,outfile)
+# identify feature and target
+feature_names = ['MESSAGE']
+target_names = ['CATEGORY']
 
 
 
 #%% Split data
 from sklearn.model_selection import train_test_split
-X = X
+X = df[feature_names]
 y = df[target_names]
 
 random_state = 42
@@ -93,6 +73,31 @@ print('Length of X_train after Rebalance:', str(X_train_under.shape[0]))
 X_train = X_train_under
 y_train = y_train_under
 """
+
+
+#%% tf-idf
+#102542 unique words to 8694 unique words with max_df and min_df
+from sklearn.feature_extraction.text import TfidfVectorizer
+strip_accents = 'ascii'
+lowercase = True
+max_df = 0.4
+min_df = 10
+vectorizer = TfidfVectorizer(strip_accents=strip_accents,
+                             lowercase=lowercase,
+                             max_df=max_df,
+                             min_df=min_df)
+X_train = vectorizer.fit_transform(X_train['MESSAGE'])
+X_test = vectorizer.transform(X_test['MESSAGE'])
+#consider adding NLTK to add stemming functionality
+
+# save tfidf vectorizer
+vectorizer_filename= "vectorizer.pkl"
+with open(vectorizer_filename, 'wb') as outfile:
+    pickle.dump(vectorizer,outfile)
+
+
+
+
 
 
 #%% Machine Learning Model
@@ -228,18 +233,18 @@ plt.savefig('Plot_ROCCurve.png')
 
 #%% See mispredicted emails
 
-
-print('SPAM, Predicted as NOT SPAM)
+"""
+print('SPAM, Predicted as NOT SPAM')
 # Predicted not spam
 for ii in range(0,len(y_test)):
     if y_pred[ii] - float(y_test.iloc[ii].values)  == -1:
         print(df.values[y_test.index[ii]])
         input()
 
-print('NOT SPAM, Predicted as SPAM)
+print('NOT SPAM, Predicted as SPAM')
 # Predicted spam        
 for ii in range(0,len(y_test)):
     if float(y_test.iloc[ii].values) - y_pred[ii]   == -1:
         print(df.values[y_test.index[ii]])
         input()
-
+"""
